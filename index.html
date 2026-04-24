@@ -1,13 +1,140 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>202600424</title>
-  </head>
-  <body>
-    <div id="app"></div>
-    <script type="module" src="/src/main.js"></script>
-  </body>
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>米佳玉的計算雞</title>
+<style>
+    /* 針對整個頁面背景進行排版 */
+    body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        margin: 0;
+        background-color: #f4f4f9;
+        font-family: "Microsoft JhengHei", sans-serif;
+    }
+
+    /* 標題的專屬樣式 */
+    .title {
+        color: #333333;
+        margin-bottom: 20px;
+        font-size: 2rem;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    /* 計算機的外框樣式 */
+    .calculator {
+        width: 320px;
+        background-color: #3a4655;
+        border-radius: 15px;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        padding: 20px;
+    }
+
+    /* 計算機螢幕 */
+    .calculator-display {
+        background-color: #222;
+        color: #fff;
+        font-size: 2.5rem;
+        text-align: right;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        word-wrap: break-word; /* 讓過長的數字可以換行 */
+        word-break: break-all;
+    }
+
+    /* 按鈕網格容器 */
+    .calculator-buttons {
+        display: grid;
+        /* 建立一個四欄，每欄等寬的網格 */
+        grid-template-columns: repeat(4, 1fr);
+        grid-gap: 10px; /* 按鈕之間的間距 */
+    }
+
+    /* 所有按鈕的通用樣式 */
+    button {
+        padding: 20px;
+        font-size: 1.5rem;
+        border: none;
+        border-radius: 8px;
+        background-color: #505050;
+        color: white;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+
+    /* 滑鼠懸停在按鈕上時的樣式 */
+    button:hover {
+        background-color: #6c6c6c;
+    }
+
+    /* 運算子按鈕的特殊樣式 */
+    .operator {
+        background-color: #ff9500;
+    }
+
+    .operator:hover {
+        background-color: #ffb74d;
+    }
+    
+    /* 清除、正負號、百分比按鈕的樣式 */
+    .misc {
+        background-color: #d4d4d2;
+        color: #1c1c1c;
+    }
+
+    .misc:hover {
+        background-color: #e8e8e6;
+    }
+
+    /* 讓指定的按鈕橫跨兩個網格欄位 */
+    .span-two {
+        grid-column: span 2;
+    }
+
+</style>
+</head>
+<body>
+
+    <!-- 在這裡打上你要求的標題 -->
+    <h1 class="title">米佳玉的計算雞</h1>
+
+    <!-- 這個區塊就是你的計算機主體 -->
+    <div class="calculator">
+        <!-- 顯示螢幕 -->
+        <div class="calculator-display">0</div>
+        
+        <!-- 按鈕區 -->
+        <div class="calculator-buttons">
+            <button class="misc">AC</button>
+            <button class="misc">+/-</button>
+            <button class="misc">%</button>
+            <button class="operator">÷</button>
+
+            <button>7</button>
+            <button>8</button>
+            <button>9</button>
+            <button class="operator">×</button>
+
+            <button>4</button>
+            <button>5</button>
+            <button>6</button>
+            <button class="operator">-</button>
+
+            <button>1</button>
+            <button>2</button>
+            <button>3</button>
+            <button class="operator">+</button>
+
+            <button class="span-two">0</button>
+            <button>.</button>
+            <button class="operator">=</button>
+        </div>
+    </div>
+
+</body>
 </html>
