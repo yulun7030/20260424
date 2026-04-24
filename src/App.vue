@@ -1,162 +1,202 @@
 <template>
-  <div class="calculator">
+  <div class="calculator-wrapper">
+    <h1 class="title">米佳玉的計算雞</h1>
+    
+    <div class="calculator">
+      <!-- 顯示螢幕 -->
+      <div class="calculator-display">{{ currentInput }}</div>
+      
+      <!-- 按鈕區 -->
+      <div class="calculator-buttons">
+        <button class="misc" @click="handleMisc('AC')">AC</button>
+        <button class="misc" @click="handleMisc('+/-')">+/-</button>
+        <button class="misc" @click="handleMisc('%')">%</button>
+        <button class="operator" @click="handleOperator('÷')">÷</button>
 
-    <!-- 顯示幕 -->
-    <div class="display">
-      <p class="expression">{{ expression || '0' }}</p>
-      <p class="result">= {{ result }}</p>
+        <button @click="handleNumber('7')">7</button>
+        <button @click="handleNumber('8')">8</button>
+        <button @click="handleNumber('9')">9</button>
+        <button class="operator" @click="handleOperator('×')">×</button>
+
+        <button @click="handleNumber('4')">4</button>
+        <button @click="handleNumber('5')">5</button>
+        <button @click="handleNumber('6')">6</button>
+        <button class="operator" @click="handleOperator('-')">-</button>
+
+        <button @click="handleNumber('1')">1</button>
+        <button @click="handleNumber('2')">2</button>
+        <button @click="handleNumber('3')">3</button>
+        <button class="operator" @click="handleOperator('+')">+</button>
+
+        <button class="span-two" @click="handleNumber('0')">0</button>
+        <button @click="handleNumber('.')">.</button>
+        <button class="operator" @click="handleOperator('=')">=</button>
+      </div>
     </div>
-
-    <!-- 按鍵區 -->
-    <div class="keypad">
-      <!-- 第一行 -->
-      <button @click="clear"               class="btn gray wide">AC</button>
-      <button @click="pressButton('%')"    class="btn gray">%</button>
-      <button @click="pressButton('÷')"   class="btn orange">÷</button>
-
-      <!-- 第二行 -->
-      <button @click="pressButton('7')"   class="btn">7</button>
-      <button @click="pressButton('8')"   class="btn">8</button>
-      <button @click="pressButton('9')"   class="btn">9</button>
-      <button @click="pressButton('×')"  class="btn orange">×</button>
-
-      <!-- 第三行 -->
-      <button @click="pressButton('4')"   class="btn">4</button>
-      <button @click="pressButton('5')"   class="btn">5</button>
-      <button @click="pressButton('6')"   class="btn">6</button>
-      <button @click="pressButton('-')"   class="btn orange">－</button>
-
-      <!-- 第四行 -->
-      <button @click="pressButton('1')"   class="btn">1</button>
-      <button @click="pressButton('2')"   class="btn">2</button>
-      <button @click="pressButton('3')"   class="btn">3</button>
-      <button @click="pressButton('+')"   class="btn orange">＋</button>
-
-      <!-- 第五行 -->
-      <button @click="pressButton('0')"   class="btn wide-left">0</button>
-      <button @click="pressButton('.')"   class="btn">.</button>
-      <button @click="calculate"           class="btn orange">=</button>
-    </div>
-
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref } from 'vue';
 
-const expression = ref('')
+// 狀態變數
+const currentInput = ref('0');
+const previousInput = ref('');
+const operator = ref(null);
+const waitingForNewValue = ref(false);
 
-const result = computed(() => {
-  if (!expression.value) return '0'
-  try {
-    const jsExpr = expression.value
-      .replace(/×/g, '*')
-      .replace(/÷/g, '/')
-    const value = Function('"use strict"; return (' + jsExpr + ')')()
-    return Math.round(value * 1e10) / 1e10
-  } catch {
-    return '...'
+// 基本運算邏輯
+const calculate = (a, b, op) => {
+  if (isNaN(a) || isNaN(b)) return 0;
+  let result;
+  switch (op) {
+    case '+': result = a + b; break;
+    case '-': result = a - b; break;
+    case '×': result = a * b; break;
+    case '÷': return b === 0 ? 'Error' : a / b;
+    default: return b;
   }
-})
+  return Math.round(result * 1000000000) / 1000000000;
+};
 
-function pressButton(value) {
-  expression.value = expression.value + value
-}
-
-function clear() {
-  expression.value = ''
-}
-
-function calculate() {
-  if (result.value !== '...') {
-    expression.value = String(result.value)
+// 處理特殊按鈕 (AC, +/-, %)
+const handleMisc = (val) => {
+  if (val === 'AC') {
+    currentInput.value = '0';
+    previousInput.value = '';
+    operator.value = null;
+    waitingForNewValue.value = false;
+  } else if (val === '+/-') {
+    if (currentInput.value !== 'Error') {
+      currentInput.value = String(parseFloat(currentInput.value) * -1);
+    }
+  } else if (val === '%') {
+    if (currentInput.value !== 'Error') {
+      currentInput.value = String(parseFloat(currentInput.value) / 100);
+    }
   }
-}
+};
+
+// 處理運算子 (+, -, ×, ÷, =)
+const handleOperator = (val) => {
+  if (val === '=') {
+    if (operator.value && previousInput.value !== '') {
+      currentInput.value = String(calculate(parseFloat(previousInput.value), parseFloat(currentInput.value), operator.value));
+      operator.value = null;
+      previousInput.value = '';
+      waitingForNewValue.value = true;
+    }
+  } else {
+    if (operator.value && !waitingForNewValue.value) {
+      currentInput.value = String(calculate(parseFloat(previousInput.value), parseFloat(currentInput.value), operator.value));
+    }
+    operator.value = val;
+    previousInput.value = currentInput.value;
+    waitingForNewValue.value = true;
+  }
+};
+
+// 處理數字與小數點輸入
+const handleNumber = (val) => {
+  if (waitingForNewValue.value || currentInput.value === 'Error') {
+    currentInput.value = val === '.' ? '0.' : val;
+    waitingForNewValue.value = false;
+  } else {
+    if (val === '.') {
+      if (!currentInput.value.includes('.')) {
+        currentInput.value += '.';
+      }
+    } else {
+      currentInput.value = currentInput.value === '0' ? val : currentInput.value + val;
+    }
+  }
+};
 </script>
 
 <style>
-/* 全域：讓頁面背景也是深色 */
+/* 確保整個畫面背景乾淨 */
 body {
-  background: #000;
   margin: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-}
-</style>
-
-<style scoped>
-/* 計算機外殼 */
-.calculator {
-  width: 320px;
-  background: #1c1c1e;
-  border-radius: 40px;
-  padding: 24px 20px 32px;
-  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.8);
+  padding: 0;
+  background-color: #f4f4f9;
 }
 
-/* 顯示幕 */
-.display {
-  padding: 12px 8px 20px;
-  text-align: right;
-  min-height: 110px;
+/* 計算機外部的排版 */
+.calculator-wrapper {
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  font-family: "Microsoft JhengHei", sans-serif;
 }
-.expression {
-  color: white;
-  font-size: 48px;
-  font-weight: 200;
-  margin: 0;
-  line-height: 1.1;
+
+.title {
+  color: #333333;
+  margin-bottom: 20px;
+  font-size: 2rem;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.calculator {
+  width: 320px;
+  background-color: #3a4655;
+  border-radius: 15px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+  padding: 20px;
+}
+
+.calculator-display {
+  background-color: #222;
+  color: #fff;
+  font-size: 2.5rem;
+  text-align: right;
+  padding: 20px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  word-wrap: break-word;
   word-break: break-all;
 }
-.result {
-  color: #636366;
-  font-size: 22px;
-  margin: 6px 0 0;
-}
 
-/* 按鍵區 */
-.keypad {
+.calculator-buttons {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
+  grid-gap: 10px;
 }
 
-/* 基本按鍵 */
-.btn {
-  height: 72px;
+button {
+  padding: 20px;
+  font-size: 1.5rem;
   border: none;
-  border-radius: 50%;
-  font-size: 28px;
-  font-weight: 300;
+  border-radius: 8px;
+  background-color: #505050;
   color: white;
-  background: #3a3a3c;
   cursor: pointer;
-  transition: opacity 0.1s;
+  transition: background-color 0.2s;
 }
-.btn:active { opacity: 0.6; }
 
-/* 橘色運算子 */
-.btn.orange { background: #ff9500; }
-
-/* 灰色（AC、%） */
-.btn.gray { background: #636366; }
-
-/* 寬版按鍵：AC 和 0 */
-.btn.wide {
-  grid-column: span 2;
-  border-radius: 36px;
-  text-align: left;
-  padding-left: 28px;
+button:hover {
+  background-color: #6c6c6c;
 }
-.btn.wide-left {
+
+.operator {
+  background-color: #ff9500;
+}
+
+.operator:hover {
+  background-color: #ffb74d;
+}
+
+.misc {
+  background-color: #d4d4d2;
+  color: #1c1c1c;
+}
+
+.misc:hover {
+  background-color: #e8e8e6;
+}
+
+.span-two {
   grid-column: span 2;
-  border-radius: 36px;
-  text-align: left;
-  padding-left: 28px;
 }
 </style>
